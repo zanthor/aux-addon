@@ -161,7 +161,7 @@ function scan_page(i)
 			aux.when(signal_received, scan_page, i)
 			return aux.place_bid(auction_info.query_type, auction_info.index, auction_info.bid_price, send_signal)
 		elseif not get_query().validator or get_query().validator(auction_info) then
-			do (get_state().params.on_auction or pass)(auction_info) end
+			do (get_state().params.on_auction or pass)(auction_info, auction_info.index) end
 		end
 	end
 

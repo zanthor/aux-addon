@@ -87,12 +87,22 @@ function aux.handle.INIT_UI()
         return data.record == get_bid_selection() or data.record.historical_value and get_bid_selection() and get_bid_selection().historical_value
     end)
     bid_listing:SetHandler('OnClick', function(table, row_data, column, button)
-        if button == 'RightButton' and row_data.record == get_bid_selection() or row_data.record.historical_value and get_bid_selection() and get_bid_selection().historical_value then
-            set_bid_selection()
+        if button == 'RightButton' then
+            if not row_data.record.own and not row_data.record.historical_value and row_data.record.auctions and getn(row_data.record.auctions) > 0 then
+                -- Switch to search tab and find this auction
+                if row_data.record.item_id then
+                    aux.set_tab(1)
+                    search_tab.set_filter(strlower(info.item(row_data.record.item_id).name) .. '/exact')
+                    search_tab.execute(nil, false)
+                end
+            elseif row_data.record == get_bid_selection() or row_data.record.historical_value and get_bid_selection() and get_bid_selection().historical_value then
+                set_bid_selection()
+                refresh = true
+            end
         else
             set_bid_selection(row_data.record)
+            refresh = true
         end
-        refresh = true
     end)
     bid_listing:SetHandler('OnDoubleClick', function(table, row_data, column, button)
         stack_size_slider:SetValue(row_data.record.stack_size)
@@ -111,12 +121,22 @@ function aux.handle.INIT_UI()
         return data.record == get_buyout_selection() or data.record.historical_value and get_buyout_selection() and get_buyout_selection().historical_value
     end)
     buyout_listing:SetHandler('OnClick', function(table, row_data, column, button)
-        if button == 'RightButton' and row_data.record == get_buyout_selection() or row_data.record.historical_value and get_buyout_selection() and get_buyout_selection().historical_value then
-            set_buyout_selection()
+        if button == 'RightButton' then
+            if not row_data.record.own and not row_data.record.historical_value and row_data.record.auctions and getn(row_data.record.auctions) > 0 then
+                -- Switch to search tab and find this auction
+                if row_data.record.item_id then
+                    aux.set_tab(1)
+                    search_tab.set_filter(strlower(info.item(row_data.record.item_id).name) .. '/exact')
+                    search_tab.execute(nil, false)
+                end
+            elseif row_data.record == get_buyout_selection() or row_data.record.historical_value and get_buyout_selection() and get_buyout_selection().historical_value then
+                set_buyout_selection()
+                refresh = true
+            end
         else
             set_buyout_selection(row_data.record)
+            refresh = true
         end
-        refresh = true
     end)
     buyout_listing:SetHandler('OnDoubleClick', function(table, row_data, column, button)
         stack_size_slider:SetValue(row_data.record.stack_size)

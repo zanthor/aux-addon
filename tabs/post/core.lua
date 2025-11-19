@@ -46,16 +46,20 @@ end
 do
 	local bid_selections, buyout_selections = {}, {}
 	function get_bid_selection()
-		return bid_selections[selected_item.key]
+		return selected_item and bid_selections[selected_item.key]
 	end
 	function set_bid_selection(record)
-		bid_selections[selected_item.key] = record
+		if selected_item then
+			bid_selections[selected_item.key] = record
+		end
 	end
 	function get_buyout_selection()
-		return buyout_selections[selected_item.key]
+		return selected_item and buyout_selections[selected_item.key]
 	end
 	function set_buyout_selection(record)
-		buyout_selections[selected_item.key] = record
+		if selected_item then
+			buyout_selections[selected_item.key] = record
+		end
 	end
 end
 
@@ -117,6 +121,9 @@ function update_auction_listing(listing, records, reference)
 		for _, record in records[selected_item.key] or T.empty do
 			local price_color = undercut(record, stack_size_slider:GetValue(), listing == 'bid') < reference and aux.color.red
 			local price = record.unit_price * (listing == 'bid' and record.stack_size / stack_size_slider:GetValue() or 1)
+			-- Store item info in the record for right-click handlers
+			record.item_id = selected_item.item_id
+			record.item_key = selected_item.key
 			tinsert(rows, T.map(
 				'cols', T.list(
 				T.map('value', record.own and aux.color.green(record.count) or record.count),
@@ -227,7 +234,7 @@ function post_auctions()
 					return
 				end
 				for i = 1, posted do
-                    record_auction(key, stack_size, unit_start_price * stack_size, unit_buyout_price, duration_code, UnitName'player')
+                    record_auction(key, stack_size, unit_start_price * stack_size, unit_buyout_price, duration_code, UnitName'player', nil)
                 end
                 update_inventory_records()
 				local same
@@ -279,7 +286,7 @@ function M.post_auctions_bind()
 					return
 				end
 				for i = 1, posted do
-                    record_auction(key, stack_size, unit_start_price * stack_size, unit_buyout_price, duration_code, UnitName'player')
+                    record_auction(key, stack_size, unit_start_price * stack_size, unit_buyout_price, duration_code, UnitName'player', nil)
                 end
                 update_inventory_records()
 				local same
@@ -542,18 +549,19 @@ function refresh_entries()
                 status_bar:update_status(page / total_pages, 0) -- TODO
                 status_bar:set_text(format('Scanning Page %d / %d', page, total_pages))
 			end,
-			on_auction = function(auction_record)
-				if auction_record.item_key == item_key then
+		on_auction = function(auction_record, slot_index)
+			if auction_record.item_key == item_key then
                     record_auction(
                         auction_record.item_key,
                         auction_record.aux_quantity,
                         auction_record.unit_blizzard_bid,
                         auction_record.unit_buyout_price,
                         auction_record.duration,
-                        auction_record.owner
+                        auction_record.owner,
+                        slot_index
                     )
-				end
-			end,
+			end
+		end,
 			on_abort = function()
 				bid_records[item_key], buyout_records[item_key] = nil, nil
                 status_bar:update_status(1, 1)
@@ -570,35 +578,41 @@ function refresh_entries()
 	end
 end
 
-function record_auction(key, aux_quantity, unit_blizzard_bid, unit_buyout_price, duration, owner)
+function record_auction(key, aux_quantity, unit_blizzard_bid, unit_buyout_price, duration, owner, slot_index)
     bid_records[key] = bid_records[key] or T.acquire()
     do
-	    local entry
-	    for _, record in bid_records[key] do
-	        if unit_blizzard_bid == record.unit_price and aux_quantity == record.stack_size and duration == record.duration and info.is_player(owner) == record.own then
-	            entry = record
-	        end
+	local entry
+	for _, record in bid_records[key] do
+	    if unit_blizzard_bid == record.unit_price and aux_quantity == record.stack_size and duration == record.duration and info.is_player(owner) == record.own then
+	        entry = record
 	    end
-	    if not entry then
-	        entry = T.map('stack_size', aux_quantity, 'unit_price', unit_blizzard_bid, 'duration', duration, 'own', info.is_player(owner), 'count', 0)
-	        tinsert(bid_records[key], entry)
-	    end
-	    entry.count = entry.count + 1
+	end
+	if not entry then
+	    entry = T.map('stack_size', aux_quantity, 'unit_price', unit_blizzard_bid, 'duration', duration, 'own', info.is_player(owner), 'count', 0, 'auctions', T.acquire())
+	    tinsert(bid_records[key], entry)
+	end
+	entry.count = entry.count + 1
+	if slot_index and not info.is_player(owner) then
+	    tinsert(entry.auctions, T.map('slot', slot_index, 'owner', owner))
+	end
     end
     buyout_records[key] = buyout_records[key] or T.acquire()
     if unit_buyout_price == 0 then return end
     do
-	    local entry
-	    for _, record in buyout_records[key] do
-		    if unit_buyout_price == record.unit_price and aux_quantity == record.stack_size and duration == record.duration and info.is_player(owner) == record.own then
-			    entry = record
-		    end
+	local entry
+	for _, record in buyout_records[key] do
+	    if unit_buyout_price == record.unit_price and aux_quantity == record.stack_size and duration == record.duration and info.is_player(owner) == record.own then
+		entry = record
 	    end
-	    if not entry then
-		    entry = T.map('stack_size', aux_quantity, 'unit_price', unit_buyout_price, 'duration', duration, 'own', info.is_player(owner), 'count', 0)
-		    tinsert(buyout_records[key], entry)
-	    end
-	    entry.count = entry.count + 1
+	end
+	if not entry then
+	    entry = T.map('stack_size', aux_quantity, 'unit_price', unit_buyout_price, 'duration', duration, 'own', info.is_player(owner), 'count', 0, 'auctions', T.acquire())
+	    tinsert(buyout_records[key], entry)
+	end
+	entry.count = entry.count + 1
+	if slot_index and not info.is_player(owner) then
+	    tinsert(entry.auctions, T.map('slot', slot_index, 'owner', owner))
+	end
     end
 end
 
