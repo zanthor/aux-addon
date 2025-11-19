@@ -206,7 +206,7 @@ function formatted_post_filter(components)
 		end
 		str = str .. '</p><p>'
 		for _ = 1, getn(stack) + 1 do
-			str = str .. aux.color.content.background' --'
+			str = str .. aux.color.content.background'----'
 		end
 		no_line_break = component[1] == 'operator' and component[2] == 'not'
 
@@ -236,7 +236,7 @@ function formatted_post_filter(components)
 		str = str .. data_link(i, component_text)
 	end
 
-	return '<html><body><p>' .. data_link(0, ' ') .. '</p><p>' .. str .. '</p></body></html>'
+	return '<html><body><p>' .. data_link(0, 'Post Filter:') .. '</p><p>' .. str .. '</p></body></html>'
 end
 
 function data_link(id, str)

@@ -6,6 +6,7 @@ local info = require 'aux.util.info'
 local filter_util = require 'aux.util.filter'
 local scan_util = require 'aux.util.scan'
 local scan = require 'aux.core.scan'
+local gui = require 'aux.gui'
 
 search_scan_id = 0
 
@@ -17,11 +18,11 @@ function update_real_time(enable)
 	if enable then
 		range_button:Hide()
 		real_time_button:Show()
-		search_box:SetPoint('LEFT', real_time_button, 'RIGHT', 4, 0)
+		search_box:SetPoint('LEFT', real_time_button, 'RIGHT', gui.is_blizzard() and 8 or 4, 0)
 	else
 		real_time_button:Hide()
 		range_button:Show()
-		search_box:SetPoint('LEFT', last_page_input, 'RIGHT', 4, 0)
+		search_box:SetPoint('LEFT', last_page_input, 'RIGHT', gui.is_blizzard() and 8 or 4, 0)
 	end
 end
 
@@ -232,29 +233,19 @@ function start_search(queries, continuation)
 		on_scan_start = function()
 			search.status_bar:update_status(0, 0)
 			if continuation then
-				search.status_bar:set_text('|cff3399ffResuming scan...|r')
+				search.status_bar:set_text('Resuming scan...')
 			else
-				search.status_bar:set_text('|cff3399ffScanning auctions...|r')
+				search.status_bar:set_text('Scanning auctions...')
 			end
 		end,
-on_page_loaded = function(_, total_scan_pages)
-	current_page = current_page + 1
-	total_scan_pages = total_scan_pages + (start_page - 1)
-	total_scan_pages = max(total_scan_pages, 1)
-	current_page = min(current_page, total_scan_pages)
-	
-	search.status_bar:update_status((current_query - 1) / getn(queries), current_page / total_scan_pages)
-
-	local query_text = ''
-	if total_queries > 1 then
-		query_text = format('|cffff8000%d|r / |cff00ff00%d|r ', current_query, total_queries)
-	end
-
-	search.status_bar:set_text(format(
-		'|cff3399ffScanning|r %s(Page |cffff8000%d|r / |cff00ff00%d|r)',
-		query_text, current_page, total_scan_pages
-	))
-end,
+		on_page_loaded = function(_, total_scan_pages)
+			current_page = current_page + 1
+			total_scan_pages = total_scan_pages + (start_page - 1)
+			total_scan_pages = max(total_scan_pages, 1)
+			current_page = min(current_page, total_scan_pages)
+			search.status_bar:update_status((current_query - 1) / getn(queries), current_page / total_scan_pages)
+			search.status_bar:set_text(format('Scanning %d / %d (Page %d / %d)', current_query, total_queries, current_page, total_scan_pages))
+		end,
 		on_page_scanned = function()
 			search.table:SetDatabase()
 		end,
@@ -272,7 +263,7 @@ end,
 		end,
 		on_complete = function()
 			search.status_bar:update_status(1, 1)
-			search.status_bar:set_text('|cff00ff00Scan complete|r')
+			search.status_bar:set_text('Scan complete')
 
 			if current_search() == search and frame.results:IsVisible() and getn(search.records) == 0 then
 				set_subtab(SAVED)
@@ -283,7 +274,7 @@ end,
 		end,
 		on_abort = function()
 			search.status_bar:update_status(1, 1)
-			search.status_bar:set_text('|cffff8000Scan paused|r')
+			search.status_bar:set_text('Scan paused')
 
 			if current_query then
 				search.continuation = {current_query, current_page + 1}
@@ -310,7 +301,6 @@ function M.execute(resume, real_time)
 
 	if resume then
 		search_box:SetText(current_search().filter_string)
-		search_box:SetTextInsets(5, 1.5, 3, 3)  -- reapply insets here
 	end
 	local filter_string, first_page, last_page = search_box:GetText(), blizzard_page_index(first_page_input:GetText()), blizzard_page_index(last_page_input:GetText())
 

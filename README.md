@@ -1,36 +1,19 @@
-# Aux-Revamped
-
-* A refreshed and transparent UI update for the classic Aux auction addon.
-![image](https://github.com/user-attachments/assets/5657e872-3cd3-437a-874a-b3e2732f06f4)
-
-
-![image](https://github.com/user-attachments/assets/86cf212b-675f-4008-bd04-c23ec041f138)
-
-
-![image](https://github.com/user-attachments/assets/64300e05-27b8-466f-84cc-965be9a7cc7b)
-
-
-Hey everyone,
-
-I absolutely love Aux, but I’ve always thought the UI could use some polish — and I know many of you agree. So, I took some time to give it a facelift!
-
-I’ve updated it to use Blizzard’s classic background and border, refined all the highlight textures, and tweaked the text positioning for a cleaner, more cohesive look.
-
-Additionally, I’ve improved the “money” fonts so the numbers now match the color of their respective currency symbols, making values easier to read at a glance. I also added dynamic vendor price and stacks price calculations, including profit/loss display directly in the posting tab.
-
-On top of that, I implemented a built-in 40% reduction to deposit fees. It’s not a perfect match to the original Turtle WoW formula, but it’s a lot closer than the default values.
-
-It’s not perfect yet, but it’s a solid step forward!
-
-As always, feel free to share any ideas or submit pull requests. :)
-
-
-  
 # aux Turtle
 
+* Now comes with a new blizz-like theme by default thanks to Oldmana. Use **/aux theme** to switch between them.
 * Shares some price data through the LFT chat when searching the AH, use **/aux sharing** to disable sending and receiving data.
 * Accurate auction durations for Turtle WoW.
 * Autocompletion for custom Turtle WoW items.
+* Display Unit Vendor Price
+* The displayed deposit fee has been reduced by 40%, this isn't accurate but should be closer to the real cost. I'd like to have it accurate eventually, if you know what turtle's calculations are feel free to reach out to me or even send a pr.
+
+"Why is aux so slow on turtle wow?"    
+The rate at which the client receives auction data is intentionally limited by the server, there is nothing addons can do here.
+
+New Blizz-like theme:
+<img src="https://i.imgur.com/8HTsH2D.png" alt="Main Screen">
+<img src="https://i.imgur.com/iwrPHIE.png" alt="Search Screen">
+<img src="https://i.imgur.com/mBVV7cf.png" alt="Post Screen">
 
 # aux - WoW 1.12 AddOn
 
@@ -77,10 +60,13 @@ The most advanced auction house addOn for the 1.12 client with some features mor
 ### General
 **/aux** (Lists the settings)<br/>
 **/aux scale _factor_** (Scales the aux GUI by _factor_)<br/>
+**/aux uc** (Toggles automatic undercutting.)<br/>
 **/aux ignore owner** (Disables waiting for owner names when scanning. Recommended)<br/>
 **/aux post bid** (Adds a bid price listing to the post tab)<br/>
 **/aux crafting cost** (Toggles the crafting price information)<br/>
 **/aux post duration _hours_** (Sets the default auction duration to _2_/_8_/_24_ hours)<br/>
+**/aux sharing** (Enable or disable auction data sharing as described above)<br/>
+**/aux theme** (Switch between the two themes)<br/>
 ### Tooltip
 **/aux tooltip value**<br/>
 **/aux tooltip daily**<br/>
